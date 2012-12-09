@@ -1,0 +1,18 @@
+Tested on a various of
+- ASUS laptops
+- Dell laptops
+- Dell workstations
+- QEMU
+- VirtualBox
+- XEN
+- VmWare
+
+Features may or may work according to hardware types - but this is a good 
+place to start with.
+
+Recommended non virtualized environment will have an i915 supported graphic chipset.
+SandyBridge / IvyBridge recommended.
+
+Have fun!
+
+-Ron

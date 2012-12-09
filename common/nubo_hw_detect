@@ -1,0 +1,162 @@
+#
+#  If you want to add specific initializations to specific Hardware, you can add it here.
+#  Follow the examples in detect_hardware.
+#  This script was derived from the asus_laptop configuration script, and includes it as well.
+#
+#
+DMIPATH=/sys/class/dmi/id
+
+asus_info()
+{
+	board=`cat $DMIPATH/product_name`
+	case "$board" in
+		70*)
+			[ -z "$DPI" ] && DPI=120
+			;;
+		ET1602*)
+			BOARD_USES_TSLIB=true
+			;;
+		ET2002*)
+			UVESA_MODE=${UVESA_MODE:-1600x900}
+			BOARD_USES_TSLIB=true
+			;;
+		T91|T101)
+			UVESA_MODE=${UVESA_MODE:-1024x600}
+			BOARD_USES_TSLIB=true
+			;;
+		T91MT|T101MT)
+			UVESA_MODE=${UVESA_MODE:-1024x600}
+			EXTMOD="$EXTMOD hid-multitouch"
+			;;
+		EP121*)
+			EXTMOD="$EXTMOD hid-multitouch"
+			;;
+		*)
+			;;
+	esac
+
+	return 1 # auto_detect
+}
+dell_info()
+{
+	board=`cat $DMIPATH/product_name`
+	case "$board" in
+		*E6520*)
+			error WARNING: RonMunitz - Latitude E6520 using NVidia. Adjusting to native resolution
+			UVESA_MODE=${UVESA_MODE:-1920x1080}
+			;;
+		*E6420*)
+			echo Detected Latitude E6420. Will use i915 DRI initialization
+			;;
+		Optiplex*790)
+			error WARNING: Detected Optiplex 790
+			;;
+		*)
+			error WARNING: Unsupported dell
+			;;
+	esac
+
+	return 1 # auto_detect
+}
+
+
+eeepc_info()
+{
+	# enable wifi and bluetooth
+	modprobe eeepc-laptop
+	echo 1 > /sys/class/rfkill/rfkill0/state
+	echo 1 > /sys/class/rfkill/rfkill1/state
+}
+
+
+# Bochs is HW emulation in QEMU
+bochs_info()
+{
+	board=`cat $DMIPATH/product_name`
+	case "$board" in
+		*Bochs*)
+			echo Detected QEMU emulation. leaving automatic settings.
+			;;
+		*)
+			error WARNING: Unexpected Bochs product_name. Assuming VM and keeping autosettings.
+			;;
+	esac
+
+	return 1 # auto_detect
+}
+
+# innotek is HW emulation in VirtualBox
+innotek_info()
+{
+	board=`cat $DMIPATH/product_name`
+	case "$board" in
+		*VirtualBox*)
+			echo Detected VirtualBox emulation. leaving automatic settings.
+			;;
+		*)
+			error WARNING: Unexpected innotek product_name. Assuming VM and keeping autosettings.
+			;;
+	esac
+
+	return 1 # auto_detect
+}
+
+# PhoenixTechnologies is HW emulation in VMware
+phoenix_info()
+{
+	board=`cat $DMIPATH/product_name`
+	case "$board" in
+		*VMware*)
+			echo Detected VMware emulation. leaving automatic settings.
+			;;
+		*)
+			error WARNING: Unexpected Phoenix product_name. Assuming VM and keeping autosettings.
+			;;
+	esac
+
+	return 1 # auto_detect
+}
+
+
+
+
+detect_hardware()
+{
+	case "`cat $DMIPATH/uevent`" in
+		*ASUSTeK*)
+			grep -q EeePC $DMIPATH/board_serial || grep -q ^ET $DMIPATH/board_name
+			if [ $? -eq 0 ]; then
+				eeepc_info
+			fi
+			asus_info
+			;;
+		*Dell*)
+			error WARNING Dell autodetection
+			dell_info
+			;;
+		*Bochs*)
+			echo QEMU autodetection
+			bochs_info
+			;;
+		*innotek*)
+			echo VirtualBox autodetection
+			innotek_info
+			;;
+		*Phoenix*)
+			echo VMware autodetection
+			phoenix_info
+			;;
+		*)
+			error WARNING: Unsupported yet product. todo_RonM Refine board detection 
+			;;
+	esac
+}
+
+post_detect()
+{
+	board=`cat $DMIPATH/product_name`
+	case "$board" in
+		*)
+			;;
+	esac
+}
